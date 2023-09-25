@@ -1,0 +1,27 @@
+version: "3"
+services:
+  mitmproxy:
+    image: mitmproxy/mitmproxy
+    entrypoint: "mitmweb --ssl-insecure --web-host 0.0.0.0"
+    user: 1000:1000
+    volumes:
+      - $PWD/certs:/home/mitmproxy/.mitmproxy
+      - $PWD/app:/home/mitmproxy/frontend
+    ports:
+      - 8080:8080
+      - 8081:8081
+  app:
+    build:
+      dockerfile: './app.Dockerfile'
+    depends_on: 
+      - mitmproxy
+    volumes:
+      - $PWD/app:/frontend
+      - $PWD/tmp:/tmp
+    environment:
+      - https_proxy=http://mitmproxy:8080
+      - http_proxy=http://mitmproxy:8080
+    tty: true
+    network_mode: service:mitmproxy
+    working_dir: '/frontend'
+    entrypoint: "npm run dev -- --hostname 0"

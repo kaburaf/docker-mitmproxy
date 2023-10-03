@@ -1,15 +1,39 @@
-Для использования HTTPS необходим сертификат mitmproxy-ca.pem, 
-который находится тут http://mitm.it/. Скачать можно сначала запустив 
-сервис с mitmproxy и открыть ссылку в браузере с настройкой прокси.
-Сохранить сертификаты в папке certs.
+Запуск Nuxt2/Nuxt3/Gulp приложения с ключом `inspect` из
+контейнера с проксированием серверных и клиентских запросов 
+через mitmproxy.
 
-1. Создать ярлык на директорию с приложением
-```shell
-ln -snf /full/path/to/app/dir ./app
+Контейнеры используют переменные из `.env` файла:
+```bash
+APP=/app/path
+ROOT=/path/to/docker-compose.yaml
 ```
-2. Исправить entrypoint docker-compose.yaml если необходимо;
 
-3. Запустить командой
-```shell
-docker compose up -d
+Для удобства можно запускать контейнеры с помощью bash-скрипта
+```bash
+mitmproxy() {
+    mitmPath=/path/to/docker-compose.yaml
+    sed -i "s|^\(APP=\).*|\1$PWD|" "$mitmPath/.env"
+    case $1 in
+        'debug')
+            google-chrome-stable --proxy-server="localhost:8080" --user-data-dir="/tmp" http://localhost:8081 http://192.168.100.2:3000 2>/dev/null &
+            echo $! > /tmp/mitmproxy-browser.pid
+            docker compose --file="$mitmPath/docker-compose.yaml" up
+            ;;
+        'up')
+            docker compose --file="$mitmPath/docker-compose.yaml" up
+            ;;
+        'down')
+            kill -9 $(cat /tmp/mitmproxy-browser.pid)
+            rm /tmp/mitmproxy-browser.pid
+            docker compose --file="$mitmPath/docker-compose.yaml" down
+            ;;
+        *)
+            ;;
+    esac
+}
 ```
+
+## HTTPS
+Для использования HTTPS необходим сертификат mitmproxy-ca.pem,
+который находится тут http://mitm.it/. Его необходимо скачать и 
+сохранить в папке `certs`.

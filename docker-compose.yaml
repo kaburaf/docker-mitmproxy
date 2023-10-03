@@ -2,14 +2,14 @@ version: "3"
 services:
   mitmproxy:
     image: mitmproxy/mitmproxy
-    entrypoint: "mitmweb --ssl-insecure --web-host 0.0.0.0"
+    entrypoint: "mitmweb -q --ssl-insecure --web-host 0.0.0.0"
     user: 1000:1000
     networks:
       net:
         ipv4_address: 192.168.100.2
     volumes:
       - ${ROOT}/certs:/home/mitmproxy/.mitmproxy
-      - ${APP}:/home/mitmproxy/app
+      - ${APP}:/home/mitmproxy/frontend
     ports:
       - 8080:8080
       - 8081:8081
@@ -20,14 +20,15 @@ services:
     depends_on: 
       - mitmproxy
     volumes:
-      - ${APP}:/app
+      - ${APP}:/frontend
     user: 1000:1000
     environment:
       - https_proxy=http://mitmproxy:8080
       - http_proxy=http://mitmproxy:8080
     tty: true
     network_mode: service:mitmproxy
-    working_dir: '/app'
+    working_dir: '/frontend'
+    entrypoint: 'sh /tmp/entrypoint.sh'
 networks:
   net:
     driver: bridge

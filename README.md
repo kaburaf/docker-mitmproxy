@@ -37,3 +37,7 @@ mitmproxy() {
 Для использования HTTPS необходим сертификат mitmproxy-ca.pem,
 который находится тут http://mitm.it/. Его необходимо скачать и 
 сохранить в папке `certs`.
+
+## Map Local
+https://docs.mitmproxy.org/stable/overview-features/#map-local
+Локальный путь должен начинаться с `~/frontend/<app>`

@@ -1,11 +1,5 @@
 #!/bin/env bash
 
-if [ ! -d node_modules ];then
-    echo 'Not a project' 
-    exit 1
-fi
-
-
 run_gulp() {
     node --inspect=0.0.0.0:9229 ./node_modules/.bin/gulp dev
 }
@@ -21,8 +15,10 @@ run_nuxt() {
 }
 
 
-if [ -f gulpfile.js ]; then
-    run_gulp
-else
-    run_nuxt
-fi
+if [ -d node_modules ];then
+    if [ -f gulpfile.js ]; then
+        run_gulp
+    else
+        run_nuxt
+    fi
+fi 

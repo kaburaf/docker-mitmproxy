@@ -11,21 +11,24 @@ ROOT=/path/to/docker-compose.yaml
 Для удобства можно запускать контейнеры с помощью bash-скрипта
 ```bash
 mitmproxy() {
-    mitmPath=/path/to/docker-compose.yaml
+    mitmPath=mitmproxy/path
+    browserPID=/tmp/mitmproxy-browser.pid
     sed -i "s|^\(APP=\).*|\1$PWD|" "$mitmPath/.env"
     case $1 in
         'debug')
             google-chrome-stable --proxy-server="localhost:8080" --user-data-dir="/tmp" http://localhost:8081 http://192.168.100.2:3000 2>/dev/null &
-            echo $! > /tmp/mitmproxy-browser.pid
-            docker compose --file="$mitmPath/docker-compose.yaml" up
+            echo $! > $browserPID
+            docker compose --file="$mitmPath/docker-compose.yaml" $@
             ;;
         'up')
-            docker compose --file="$mitmPath/docker-compose.yaml" up
+            docker compose --file="$mitmPath/docker-compose.yaml" $@
             ;;
         'down')
-            kill -9 $(cat /tmp/mitmproxy-browser.pid)
-            rm /tmp/mitmproxy-browser.pid
-            docker compose --file="$mitmPath/docker-compose.yaml" down
+            if [ -f $browserPID ]; then
+                kill -9 $(cat $browserPID)
+                rm $browserPID
+            fi
+            docker compose --file="$mitmPath/docker-compose.yaml" $@
             ;;
         *)
             ;;
